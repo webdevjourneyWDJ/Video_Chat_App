@@ -1,7 +1,7 @@
 # Video_Chat_App
 
 ### Video_Chat_App playlist:
-https://www.youtube.com/playlist?list=PLrwNNiB6YOA24PFeJrEsPMomAN3mXJcff
+https://www.youtube.com/playlist?list=PLrwNNiB6YOA18FIg4py-9jyHVHzPzbYSn
 
 
 ## Project setup
