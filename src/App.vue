@@ -1,7 +1,12 @@
 <template>
   <div id="app">
     <Navigation :user="user" @logout="logout"/>
-    <router-view :user="user" :rooms="rooms" @logout="logout" @addRoom="addRoom"/>
+    <router-view 
+      :user="user" 
+      :rooms="rooms" 
+      @logout="logout" 
+      @addRoom="addRoom"
+      @deleteRoom="deleteRoom"/>
   </div>
 </template>
 
@@ -34,6 +39,14 @@ export default {
           name: roomName,
           createdAt: Firebase.firestore.FieldValue.serverTimestamp()
         })
+    },
+
+    deleteRoom: function(roomID) {
+      db.collection('users')
+        .doc(this.user.uid)
+        .collection('rooms')
+        .doc(roomID)
+        .delete()
     }
   },
   mounted() {
