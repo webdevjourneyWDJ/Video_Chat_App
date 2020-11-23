@@ -56,7 +56,7 @@ export default {
             .set({
               displayName: this.displayName,
               createdAt: Firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => this.$router.push('/'))
+            }).then(() => this.$router.push(`/chat/${this.$route.params.hostID}/${this.$route.params.roomID}`))
         }
       })
     }
