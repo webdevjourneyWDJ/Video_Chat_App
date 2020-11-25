@@ -72,7 +72,6 @@
     </p>
   </div>
 </template>
-
 <script>
 import Firebase from 'firebase'
 export default {
@@ -85,27 +84,40 @@ export default {
       error: null
     }
   },
-
-  methods:{
+  methods: {
     register: function() {
-      if(!this.error){
-        Firebase.auth().createUserWithEmailAndPassword(this.email, this.passTwo)
-          .then(userCred => {
-            return userCred.user.updateProfile({
-              displayName: this.displayName
-            }).then(() => {
-              this.$router.push('/')
-            })
-          }, error => this.error = error.message)
+      const info = {
+        email: this.email,
+        password: this.passTwo,
+        displayName: this.displayName
+      }
+      if (!this.error) {
+        Firebase.auth()
+          .createUserWithEmailAndPassword(info.email, info.password)
+          .then(
+            userCredentials => {
+              return userCredentials.user
+                .updateProfile({
+                  displayName: info.displayName
+                })
+                .then(() => {
+                  this.$router.replace('/rooms')
+                })
+            },
+            error => {
+              this.error = error.message
+            }
+          )
       }
     }
   },
-
   watch: {
-    passTwo: function(){
-      if(this.passTwo !== '' && this.passOne !== '' & this.passTwo !== this.passOne){
-        this.error = "passwords must match"
-      } else this.error = null
+    passTwo: function() {
+      if (this.passOne !== '' && this.passTwo !== '' && this.passTwo !== this.passOne) {
+        this.error = 'passwords must match'
+      } else {
+        this.error = null
+      }
     }
   }
 }

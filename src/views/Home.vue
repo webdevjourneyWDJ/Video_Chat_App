@@ -1,7 +1,8 @@
 <template>
   <div class="mt-3">
     <div class="text-center" v-if="user">
-      Welcome back <span class="font-weight-bold text-info">{{ user.displayName }}</span>
+      Welcome back <span class="font-weight-bold text-info">{{ user.displayName }}</span
+      >, <a href="#" role="button" class="text-primary" @click="$emit('logout')">logout</a>
     </div>
     <div class="container text-center">
       <div class="row justify-content-center">
@@ -12,9 +13,13 @@
             between multiple users, allowing you to create rooms for your meetings and invite
             attendees.
           </p>
-          <router-link class="btn btn-outline-primary mr-2" to="/login" v-if="!user">Log In</router-link> 
-          <router-link class="btn btn-outline-primary mr-2" to="/register" v-if="!user">Register</router-link>
-          <router-link class="btn btn-outline-primary mr-2" to="/rooms" v-if="user">Rooms</router-link>
+          <router-link class="btn btn-outline-primary mr-2" to="/login" v-if="!user"
+            >Log In</router-link
+          >
+          <router-link class="btn btn-outline-primary mr-2" to="/register" v-if="!user"
+            >Register</router-link
+          >
+          <router-link class="btn btn-primary mr-2" to="/rooms" v-if="user">Rooms</router-link>
         </div>
       </div>
     </div>
@@ -23,7 +28,7 @@
 
 <script>
 export default {
-  name: "Home",
+  name: 'Home',
   props: ['user']
 }
 </script>

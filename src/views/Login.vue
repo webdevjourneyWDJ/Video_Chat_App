@@ -9,7 +9,7 @@
                 <h3 class="font-weight-light mb-3">Log in</h3>
                 <section class="form-group">
                   <div class="col-12 alert alert-danger px-3" v-if="error">
-                    {{error}}
+                    {{ error }}
                   </div>
                   <label class="form-control-label sr-only" for="Email">Email</label>
                   <input
@@ -39,9 +39,12 @@
         </div>
       </div>
     </form>
+    <p class="text-center mt-2">
+      or
+      <router-link to="/register">register</router-link>
+    </p>
   </div>
 </template>
-
 <script>
 import Firebase from 'firebase'
 export default {
@@ -52,13 +55,22 @@ export default {
       error: null
     }
   },
-
   methods: {
     login: function() {
-      Firebase.auth().signInWithEmailAndPassword(this.email, this.password)
-        .then(() => {
-          this.$router.push('/')
-        }, error => this.error = error.message)
+      const info = {
+        email: this.email,
+        password: this.password
+      }
+      Firebase.auth()
+        .signInWithEmailAndPassword(info.email, info.password)
+        .then(
+          () => {
+            this.$router.push('/rooms')
+          },
+          error => {
+            this.error = error.message
+          }
+        )
     }
   }
 }

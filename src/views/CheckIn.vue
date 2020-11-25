@@ -31,10 +31,9 @@
     </div>
   </form>
 </template>
-
 <script>
 import Firebase from 'firebase'
-import db from '../db'
+import db from '../db.js'
 export default {
   data: function() {
     return {
@@ -44,40 +43,34 @@ export default {
   },
   methods: {
     handleCheckIn: function() {
-      const roomRef = db.collection('users')
-        .doc(this.$route.params.hostID)
-        .collection('rooms')
-        .doc(this.$route.params.roomID)
-
-      roomRef.get().then(doc => {
-        if(doc.exists){
-          roomRef.collection('attendees')
-            .doc(this.user.uid)
-            .set({
-              displayName: this.displayName,
-              createdAt: Firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => this.$router.push(`/chat/${this.$route.params.hostID}/${this.$route.params.roomID}`))
-        }
+      this.$emit('checkIn', {
+        hostID: this.$route.params.hostID,
+        roomID: this.$route.params.roomID,
+        displayName: this.displayName
       })
     }
   },
   props: ['user'],
-
   mounted() {
-
-    //Getting User
+    //Get the User's displayName
     Firebase.auth().onAuthStateChanged(user => {
-      if(user) this.displayName = user.displayName
+      if (user) {
+        this.displayName = user.displayName
+      }
     })
 
-    //Getting Room Name
+    //Get the Room Name
     db.collection('users')
       .doc(this.$route.params.hostID)
       .collection('rooms')
       .doc(this.$route.params.roomID)
-      .get().then(doc => {
-        if(doc.exists) this.roomName = doc.data().name
-        else this.$router.push('/')
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          this.roomName = doc.data().name
+        } else {
+          this.$router.replace('/')
+        }
       })
   }
 }

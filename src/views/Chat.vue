@@ -7,12 +7,23 @@
       </span>
     </div>
     <div class="row" v-if="(user && user.uid == hostID) || attendeeApproved">
-      <div class="col-md-8"></div>
+      <div class="col-md-8">
+        <vue-webrtc 
+          ref="webrtc" 
+          width="100%"
+          :roomId="roomID"
+          v-on:join-room="doAttendeeJoined"
+          v-on:left-room="doAttendeeLeft"/>
+      </div>
       <div class="col-md-4">
-        <button class="btn btn-primary mr-1">
+        <button v-if="!attendeeJoined && attendeeApproved" 
+          class="btn btn-primary mr-1"
+          @click="doJoin">
           Join
         </button>
-        <button type="button" class="btn btn-danger mr-1">
+        <button v-if="attendeeJoined" type="button" 
+          class="btn btn-danger mr-1"
+          @click="doLeave">
           Leave
         </button>
       <h4 class="mt-2">Attendees</h4>
@@ -25,7 +36,7 @@
               v-if="user && user.uid == hostID">
               <font-awesome-icon icon="user"></font-awesome-icon>
             </a>
-            <span class="mr-2" title="On Air">
+            <span class="mr-2" :class="[attendee.webRTCID ? 'text-success' : 'text-secondary']" title="On Air">
               <font-awesome-icon icon="podcast"></font-awesome-icon>
             </span>
             <span></span>
@@ -81,14 +92,13 @@ export default {
       hostDisplayName: null,
       attendeesPendingArr: [],
       attendeesApprovedArr: [],
-      attendeeApproved: false
+      attendeeApproved: false,
+      attendeeJoined: false
     }
   },
-
   components:{
     FontAwesomeIcon
   },
-
   methods: {
     toggleApproval: function(attendeeID) {
       if(this.user && this.user.uid == this.hostID){
@@ -114,7 +124,6 @@ export default {
         })
       }
     },
-
     deleteAttendee: function(attendeeID) {
       if(this.user && this.user.uid == this.hostID){
         db.collection('users')
@@ -125,41 +134,69 @@ export default {
           .doc(attendeeID)
           .delete()
       }      
+    },
+
+    doJoin() {
+      this.$refs.webrtc.join()
+      this.attendeeJoined = true
+    },
+
+    doLeave() {
+      this.$refs.webrtc.leave()
+      this.attendeeJoined = false
+    },
+
+    doAttendeeJoined(joinID) {
+      const ref = db.collection('users')
+        .doc(this.hostID)
+        .collection('rooms')
+        .doc(this.roomID)
+        .collection('attendees')
+        .doc(this.user.uid)
+
+      ref.update({
+        webRTCID: joinID
+      })
+    },
+
+    doAttendeeLeft(leftID) {
+      const ref = db.collection('users')
+        .doc(this.hostID)
+        .collection('rooms')
+        .doc(this.roomID)
+        .collection('attendees')
+        .doc(this.user.uid)
+
+      ref.update({
+        webRTCID: null
+      })
     }
   },
-
   props: ['user'],
-
   mounted() {
     const roomRef = db.collection('users')
       .doc(this.$route.params.hostID)
       .collection('rooms')
       .doc(this.$route.params.roomID)
-
     //Get Room Name
     roomRef.get().then(roomDoc => {
       if(roomDoc.exists) this.roomName = roomDoc.data().name
       else this.$router.push('/')
     })
-
     //Get Host Name
     roomRef.collection('attendees').onSnapshot(snapShot => {
       let userCheckedIn = false
       let tempPendeing = []
       let tempApproved = []
-
       snapShot.forEach(attendeeDoc => {
-
         //Host Display Name
         if(this.hostID === attendeeDoc.id) {
           this.hostDisplayName = attendeeDoc.data().displayName
         }
-
         //Cheking If User Checked In
         if(this.user && this.user.uid == attendeeDoc.id){
           userCheckedIn = true
         }
-
         //Push all users that are approved to the approved arr.
         if(attendeeDoc.data().approved){
           if(this.user.uid == attendeeDoc.id){
@@ -168,7 +205,8 @@ export default {
           tempApproved.push({
             id: attendeeDoc.id,
             displayName: attendeeDoc.data().displayName,
-            approved: attendeeDoc.data().approved
+            approved: attendeeDoc.data().approved,
+            webRTCID: attendeeDoc.data().webRTCID
           })
         } else{ //Push all users that are NOT approved to the pending arr.
           if(this.user.uid == attendeeDoc.id){
@@ -177,18 +215,33 @@ export default {
           tempPendeing.push({
             id: attendeeDoc.id,
             displayName: attendeeDoc.data().displayName,
-            approved: attendeeDoc.data().approved
+            approved: attendeeDoc.data().approved,
+            webRTCID: attendeeDoc.data().webRTCID
           })
         }
       })
-
       if(!userCheckedIn){
         this.$router.push(`/checkin/${this.hostID}/${this.roomID}`)
       }
-
       this.attendeesPendingArr = tempPendeing
       this.attendeesApprovedArr = tempApproved
     })
   }
 }
 </script>
+
+<style lang="scss">
+  .video-list {
+    margin-bottom: 10px;
+    background: transparent !important;
+  }
+  .video-item {
+    width: 50%;
+    display: inline-block;
+    background: transparent !important;
+  }
+  .video-item video {
+    width: 100%;
+    height: auto;
+  }
+</style>
